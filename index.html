@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>رشف - نظام المهام</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
+body{background:#F2F2F7;min-height:100vh;direction:rtl;}
+.page{max-width:480px;margin:0 auto;min-height:100vh;}
+
+/* LOGIN */
+.login-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;}
+.logo{width:68px;height:68px;background:#5046E5;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;font-weight:800;margin-bottom:16px;}
+.login-title{font-size:22px;font-weight:700;color:#1C1C1E;margin-bottom:5px;}
+.login-sub{font-size:14px;color:#8E8E93;margin-bottom:28px;}
+.pin-card{background:#fff;border-radius:16px;padding:22px;width:100%;max-width:300px;box-shadow:0 2px 12px rgba(0,0,0,.08);}
+.pin-disp{height:52px;background:#F2F2F7;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;letter-spacing:5px;margin-bottom:14px;border:1.5px solid transparent;transition:border-color .2s;}
+.pin-disp.err{border-color:#FF3B30;background:#FFF0EF;}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.nb{height:52px;background:#F2F2F7;border:none;border-radius:10px;font-size:20px;font-weight:600;color:#1C1C1E;cursor:pointer;transition:background .1s;}
+.nb:active{background:#E5E5EA;}
+.nb.empty{background:transparent;cursor:default;}
+.nb.del{font-size:16px;color:#8E8E93;}
+.login-btn{width:100%;height:46px;background:#5046E5;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;}
+.login-btn:disabled{opacity:.35;cursor:not-allowed;}
+.err-txt{color:#FF3B30;font-size:12px;text-align:center;margin-top:8px;min-height:16px;}
+
+/* APP */
+.app{display:none;}
+.header{background:#fff;border-bottom:1px solid #E5E5EA;padding:12px 16px 0;position:sticky;top:0;z-index:20;}
+.header-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.back{color:#5046E5;font-size:13px;cursor:pointer;font-weight:500;padding:2px 0;min-width:44px;}
+.header-title{flex:1;text-align:center;font-size:16px;font-weight:600;color:#1C1C1E;}
+.header-right{display:flex;align-items:center;gap:6px;min-width:44px;justify-content:flex-end;}
+.badge{font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px;color:#fff;}
+.b-super{background:#5046E5;}.b-manager{background:#0071E3;}.b-emp{background:#34C759;}
+.out-btn{font-size:11px;color:#8E8E93;cursor:pointer;border:1px solid #E5E5EA;border-radius:5px;padding:2px 7px;}
+.tabs{display:flex;}
+.tab{flex:1;text-align:center;padding:8px 0;font-size:12px;color:#8E8E93;border-bottom:2px solid transparent;cursor:pointer;font-weight:500;}
+.tab.on{color:#5046E5;border-bottom-color:#5046E5;font-weight:600;}
+
+/* BODY */
+.body{padding:14px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.sc{background:#fff;border-radius:12px;padding:14px;border:1px solid #E5E5EA;}
+.sc-num{font-size:22px;font-weight:700;color:#1C1C1E;}
+.sc-lbl{font-size:11px;color:#8E8E93;margin-top:2px;}
+.green{color:#34C759;}.orange{color:#FF9500;}.red{color:#FF3B30;}
+
+/* CARDS */
+.card{background:#fff;border-radius:12px;border:1px solid #E5E5EA;padding:13px;margin-bottom:10px;cursor:pointer;transition:border-color .15s;}
+.card:hover{border-color:#5046E5;}
+.card-row{display:flex;align-items:center;gap:10px;}
+.av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
+.av0{background:#EEF0FF;color:#3730A3;}.av1{background:#ECFDF5;color:#065F46;}.av2{background:#FEF3C7;color:#92400E;}.av3{background:#EFF6FF;color:#1E40AF;}.av4{background:#FDF2F8;color:#9D174D;}
+.card-info{flex:1;min-width:0;}
+.card-name{font-size:14px;font-weight:600;color:#1C1C1E;margin-bottom:2px;}
+.card-sub{font-size:11px;color:#8E8E93;}
+.card-score{font-size:14px;font-weight:700;}
+.pin-tag{font-size:10px;background:#F2F2F7;color:#5046E5;border-radius:4px;padding:1px 5px;font-family:monospace;margin-right:4px;}
+.arr{font-size:18px;color:#C7C7CC;}
+
+/* TASK */
+.tc{background:#fff;border-radius:12px;border:1px solid #E5E5EA;padding:12px 13px;margin-bottom:10px;}
+.tc.late{border-color:#FF3B30;background:#FFF5F5;}
+.tc.done{opacity:.55;}
+.tc.pardoned{border-color:#34C759;background:#F5FFF7;}
+.tc-title{font-size:14px;font-weight:600;color:#1C1C1E;margin-bottom:5px;}
+.tc.done .tc-title{text-decoration:line-through;color:#8E8E93;}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px;}
+.chip{font-size:10px;border-radius:6px;padding:2px 7px;font-weight:600;}
+.cd{background:#EEF0FF;color:#3730A3;}.ct{background:#FEF3C7;color:#92400E;}.cl{background:#FEE2E2;color:#991B1B;}.cg{background:#ECFDF5;color:#065F46;}.cn{background:#F2F2F7;color:#3A3A3C;}
+.lbadge{display:inline-block;font-size:10px;background:#FF3B30;color:#fff;border-radius:4px;padding:2px 7px;margin-bottom:4px;font-weight:600;}
+.pbadge{display:inline-block;font-size:10px;background:#34C759;color:#fff;border-radius:4px;padding:2px 7px;margin-bottom:4px;font-weight:600;}
+.tnote{font-size:11px;color:#8E8E93;margin-top:3px;line-height:1.5;}
+.done-note{margin-top:5px;background:#ECFDF5;border-radius:7px;padding:5px 9px;font-size:11px;color:#065F46;line-height:1.5;}
+.done-when{font-size:10px;color:#059669;margin-top:2px;}
+.tactions{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap;}
+.abtn{padding:4px 10px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;}
+.ab-g{background:#ECFDF5;color:#065F46;}.ab-b{background:#EEF0FF;color:#3730A3;}.ab-r{background:#FEE2E2;color:#991B1B;}
+.complete-btn{width:100%;padding:11px;background:#34C759;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-top:5px;}
+.late-warn{background:#FEE2E2;border-radius:7px;padding:7px 10px;font-size:11px;color:#991B1B;margin-bottom:7px;line-height:1.6;}
+
+/* MISC */
+.add-btn{width:100%;padding:11px;border-radius:10px;border:1.5px dashed #C7C7CC;background:transparent;color:#8E8E93;font-size:13px;cursor:pointer;margin-top:4px;}
+.add-btn:hover{border-color:#5046E5;color:#5046E5;background:#F5F5FF;}
+.sec-hd{font-size:11px;font-weight:600;color:#8E8E93;margin:14px 0 7px;text-transform:uppercase;}
+.empty{text-align:center;padding:40px 0;color:#C7C7CC;font-size:13px;line-height:2.2;}
+.del-btn{width:100%;padding:10px;border-radius:10px;border:1px solid #FEE2E2;background:#FEF2F2;color:#DC2626;font-size:12px;cursor:pointer;margin-top:8px;}
+.info-box{background:#EEF0FF;border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:11px;color:#3730A3;line-height:1.7;}
+.warn-box{background:#FEF3C7;border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:11px;color:#92400E;line-height:1.7;}
+.month-bar{display:flex;align-items:center;gap:8px;margin-bottom:13px;background:#fff;border-radius:10px;border:1px solid #E5E5EA;padding:9px 12px;}
+.month-bar select{flex:1;border:none;background:transparent;font-size:13px;color:#1C1C1E;outline:none;}
+.pdf-btn{padding:7px 13px;background:#5046E5;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;}
+
+/* PERMS */
+.perm-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #F2F2F7;}
+.perm-row:last-child{border-bottom:none;}
+.perm-lbl{font-size:13px;color:#1C1C1E;}
+.tog{width:44px;height:26px;background:#E5E5EA;border-radius:13px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
+.tog.on{background:#34C759;}
+.tog::after{content:'';position:absolute;top:3px;right:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:right .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.tog.on::after{right:calc(100% - 23px);}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;z-index:100;}
+.sheet{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:480px;margin:0 auto;padding:20px 16px 36px;max-height:90vh;overflow-y:auto;}
+.sh-title{font-size:16px;font-weight:700;color:#1C1C1E;margin-bottom:16px;text-align:center;}
+.flbl{font-size:11px;color:#8E8E93;margin-bottom:4px;display:block;font-weight:500;}
+.finp{width:100%;padding:10px 12px;border:1px solid #E5E5EA;border-radius:10px;background:#F9F9FB;color:#1C1C1E;font-size:14px;outline:none;direction:rtl;margin-bottom:12px;}
+.finp:focus{border-color:#5046E5;}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;}
+.fbtn-row{display:flex;gap:9px;margin-top:8px;}
+.fbtn-ok{flex:1;padding:12px;background:#5046E5;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;}
+.fbtn-ok:disabled{opacity:.4;cursor:not-allowed;}
+.fbtn-cancel{padding:12px 16px;background:transparent;color:#8E8E93;border:1px solid #E5E5EA;border-radius:10px;font-size:13px;cursor:pointer;}
+.narea{width:100%;padding:10px 12px;border:1px solid #E5E5EA;border-radius:10px;background:#F9F9FB;color:#1C1C1E;font-size:13px;outline:none;direction:rtl;resize:none;margin-bottom:12px;line-height:1.6;}
+.narea:focus{border-color:#5046E5;}
+.gen-btn{display:block;padding:5px 11px;background:#F2F2F7;border:1px solid #E5E5EA;border-radius:6px;font-size:11px;color:#5046E5;cursor:pointer;margin-bottom:12px;}
+.assign-list{max-height:200px;overflow-y:auto;border:1px solid #E5E5EA;border-radius:10px;margin-bottom:12px;}
+.assign-item{display:flex;align-items:center;gap:9px;padding:10px 12px;border-bottom:1px solid #F2F2F7;cursor:pointer;}
+.assign-item:last-child{border-bottom:none;}
+.assign-item.sel{background:#F5F5FF;}
+.achk{width:20px;height:20px;border-radius:5px;border:2px solid #C7C7CC;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:all .15s;}
+.achk.on{background:#5046E5;border-color:#5046E5;color:#fff;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-wrap">
+  <div class="logo">ر</div>
+  <div class="login-title">نظام رشف</div>
+  <div class="login-sub">أدخل كلمة السر للدخول</div>
+  <div class="pin-card">
+    <div class="pin-disp" id="pin-disp"></div>
+    <div class="numpad" id="numpad">
+      <button class="nb" onclick="numPress(1)">1</button>
+      <button class="nb" onclick="numPress(2)">2</button>
+      <button class="nb" onclick="numPress(3)">3</button>
+      <button class="nb" onclick="numPress(4)">4</button>
+      <button class="nb" onclick="numPress(5)">5</button>
+      <button class="nb" onclick="numPress(6)">6</button>
+      <button class="nb" onclick="numPress(7)">7</button>
+      <button class="nb" onclick="numPress(8)">8</button>
+      <button class="nb" onclick="numPress(9)">9</button>
+      <button class="nb empty" style="background:transparent;border:none;cursor:default;"></button>
+      <button class="nb" onclick="numPress(0)">0</button>
+      <button class="nb del" onclick="numDel()">⌫</button>
+    </div>
+    <button class="login-btn" id="login-btn" disabled onclick="doLogin()">دخول</button>
+    <div class="err-txt" id="err-txt"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="page app" id="app">
+  <div class="header">
+    <div class="header-top">
+      <span class="back" id="back-btn" onclick="goBack()" style="visibility:hidden;">&#8592; رجوع</span>
+      <span class="header-title" id="h-title">رشف</span>
+      <div class="header-right">
+        <span class="badge" id="role-badge"></span>
+        <span class="out-btn" onclick="doLogout()">خروج</span>
+      </div>
+    </div>
+    <div class="tabs" id="tabs"></div>
+  </div>
+  <div class="body" id="body"></div>
+</div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import {getFirestore,collection,doc,onSnapshot,addDoc,updateDoc,deleteDoc} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+const db = getFirestore(initializeApp({
+  apiKey:"AIzaSyBXiNX1Gm1JXLLuXz5icRVICM0tjKMmaKU",
+  authDomain:"rshaf---tasks.firebaseapp.com",
+  projectId:"rshaf---tasks",
+  storageBucket:"rshaf---tasks.firebasestorage.app",
+  messagingSenderId:"707919327845",
+  appId:"1:707919327845:web:a68c396a255e28aadf0c8c"
+}));
+
+// ── STATE ──
+const SUPER_PIN = '1108362599';
+let users = [], tasks = [];
+let me = null;
+let screen = 'home'; // home | managers | employees | managerDetail | empTasks | allTasks | history | myTasks
+let focusId = null;  // manager id or employee id being viewed
+let empTab = 0;      // employee tab: 0=pending 1=done
+
+// ── FIREBASE ──
+onSnapshot(collection(db,'users'), s => {
+  users = s.docs.map(d=>({id:d.id,...d.data()}));
+  if(me) draw();
+  else tryRestore();
+});
+let visits = [];
+onSnapshot(collection(db,'visits'), s => {
+  visits = s.docs.map(d=>({id:d.id,...d.data()}));
+  if(me) draw();
+});
+onSnapshot(collection(db,'tasks'), s => {
+  tasks = s.docs.map(d=>({id:d.id,...d.data()}));
+  if(me) draw();
+});
+
+// ── HELPERS ──
+const p2 = x => String(x).padStart(2,'0');
+const now = () => { const n=new Date(); return `${n.getFullYear()}-${p2(n.getMonth()+1)}-${p2(n.getDate())} ${p2(n.getHours())}:${p2(n.getMinutes())}`; };
+const genPin = () => Array.from({length:10},()=>Math.floor(Math.random()*10)).join('');
+const fmtDT = d => `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+
+function dueOf(t) {
+  if(!t.createdAt||!t.durationDays) return null;
+  const b = new Date(t.createdAt.replace(' ','T'));
+  b.setTime(b.getTime() + parseFloat(t.durationDays)*24*3600*1000);
+  return b;
+}
+function isLate(t) { if(t.done||t.pardoned) return false; const d=dueOf(t); return d&&new Date()>d; }
+function hleft(t) { const d=dueOf(t); if(!d||t.done) return null; return (d-new Date())/3600000; }
+function scoreOf(uid) { let s=0; tasks.filter(t=>t.uid===uid).forEach(t=>{ if(isLate(t)) s-=(parseInt(t.pts)||5); }); return s; }
+function scCls(s) { return s===0?'green':s>=-10?'orange':'red'; }
+
+const managers = () => users.filter(u=>u.role==='manager');
+const employees = () => users.filter(u=>u.role==='employee');
+const myEmps = () => employees();
+const isSuper = () => me && me.role==='super';
+const isManager = () => false; // removed
+const isEmployee = () => me && me.role==='employee';
+const can = perm => isSuper() || (isManager() && (me.perms||{})[perm]);
+
+// ── LOGIN ──
+let pin = '';
+// Numpad handlers
+window.numPress = function(k) {
+  document.getElementById('err-txt').textContent='';
+  document.getElementById('pin-disp').classList.remove('err');
+  if(pin.length<10) pin+=String(k);
+  updPin();
+};
+window.numDel = function() {
+  document.getElementById('err-txt').textContent='';
+  document.getElementById('pin-disp').classList.remove('err');
+  pin=pin.slice(0,-1);
+  updPin();
+};
+function updPin() {
+  document.getElementById('pin-disp').textContent = '●'.repeat(pin.length)+'•'.repeat(10-pin.length);
+  document.getElementById('login-btn').disabled = pin.length!==10;
+}
+updPin();
+
+window.doLogin = () => {
+  if(pin===SUPER_PIN) { me={id:'super',name:'صالح',role:'super'}; go(); return; }
+  const u = users.find(x=>x.pin===pin);
+  if(!u) {
+    document.getElementById('pin-disp').classList.add('err');
+    document.getElementById('err-txt').textContent='كلمة السر غير صحيحة';
+    pin=''; setTimeout(()=>{updPin();document.getElementById('pin-disp').classList.remove('err');},900);
+    return;
+  }
+  me=u; sessionStorage.setItem('rshaf_id', u.id); go();
+};
+
+window.doLogout = () => {
+  me=null; pin=''; updPin(); screen='home'; focusId=null; empTab=0;
+  sessionStorage.removeItem('rshaf_id');
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-wrap').style.display='flex';
+};
+
+function tryRestore() {
+  const sid = sessionStorage.getItem('rshaf_id');
+  if(!sid) return;
+  if(sid==='super') { me={id:'super',name:'صالح',role:'super'}; go(); return; }
+  const u = users.find(x=>x.id===sid);
+  if(u) { me=u; go(); }
+}
+
+function go() {
+  document.getElementById('login-wrap').style.display='none';
+  document.getElementById('app').style.display='block';
+  sessionStorage.setItem('rshaf_id', me.id);
+  screen = isEmployee() ? 'myTasks' : 'home';
+  focusId = null;
+  draw();
+}
+
+// ── DRAW ──
+function draw() {
+  // Refresh me from users (for perms updates)
+  if(me.id!=='super') {
+    const fresh = users.find(u=>u.id===me.id);
+    if(fresh) me=fresh;
+  }
+
+  const body = document.getElementById('body');
+  const ht = document.getElementById('h-title');
+  const tb = document.getElementById('tabs');
+  const bb = document.getElementById('back-btn');
+  const rb = document.getElementById('role-badge');
+
+  rb.textContent = isSuper()?'مدير عام':'موظف';
+  rb.className = 'badge '+(isSuper()?'b-super':'b-emp');
+
+  // Back button visibility
+  const showBack = screen!=='home' && screen!=='myTasks';
+  bb.style.visibility = showBack ? 'visible':'hidden';
+
+  // Employee
+  if(isEmployee()) {
+    ht.textContent = me.name;
+    tb.innerHTML = `<div class="tab ${empTab===0?'on':''}" onclick="setEmpTab(0)">مهامي</div><div class="tab ${empTab===1?'on':''}" onclick="setEmpTab(1)">المنجزة</div><div class="tab ${empTab===2?'on':''}" onclick="setEmpTab(2)">الزيارات</div>`;
+    drawEmpView(body); return;
+  }
+
+  // Super/Manager
+  if(screen==='home'||screen==='managers'||screen==='employees'||screen==='myEmps') {
+    ht.textContent = isSuper()?'لوحة التحكم':'لوحتي';
+    tb.innerHTML=`<div class="tab ${screen==='employees'||screen==='home'?'on':''}" onclick="nav('employees')">الموظفون</div><div class="tab ${screen==='allTasks'?'on':''}" onclick="nav('allTasks')">المهام</div><div class="tab ${screen==='visitsOverview'?'on':''}" onclick="nav('visitsOverview')">الزيارات</div><div class="tab ${screen==='visitsMgmt'?'on':''}" onclick="nav('visitsMgmt')">إعداد</div><div class="tab ${screen==='history'?'on':''}" onclick="nav('history')">السجل</div>`;
+  } else {
+    tb.innerHTML='';
+  }
+
+  if(screen==='employees'||screen==='home') { ht.textContent='الموظفون'; drawEmployees(body); }
+  else if(screen==='empTasks') { drawEmpTasks(body); }
+  else if(screen==='allTasks') { ht.textContent='كل المهام'; drawAllTasks(body); }
+  else if(screen==='history') { ht.textContent='السجل'; drawHistory(body); }
+  else if(screen==='visitsOverview') { ht.textContent='الزيارات الأسبوعية'; drawVisitsOverview(body); }
+  else if(screen==='visitsMgmt') { ht.textContent='إعداد الزيارات'; drawVisitsMgmt(body); }
+  else if(screen==='empVisitsMgmt') { drawEmpVisitsMgmt(body); }
+  else if(screen==='empVisitDetail') { drawEmpVisitDetail(body); }
+}
+
+window.nav = s => { screen=s; focusId=null; draw(); };
+window.goBack = () => {
+  if(screen==='empTasks') { screen='employees'; focusId=null; }
+  else if(screen==='empVisitsMgmt') { screen='visitsMgmt'; focusId=null; }
+  else if(screen==='empVisitDetail') { screen='visitsOverview'; focusId=null; }
+  else { screen='home'; focusId=null; }
+  draw();
+};
+window.setEmpTab = i => { empTab=i; draw(); };
+
+// ── MANAGERS ──
+function drawManagers(body) {
+  const mgrs = managers();
+  let h = grid2(mgrs.length,'مدير', employees().length,'موظف');
+  if(!mgrs.length) { h+=empty('لا يوجد مديرون\nاضغط + لإضافة'); }
+  mgrs.forEach((m,i) => {
+    const emps = employees().filter(e=>(m.assignedEmployees||[]).includes(e.id));
+    const mTasks=tasks.filter(t=>t.uid===m.id&&!t.done).length;
+    const mScore=scoreOf(m.id);
+    h+=`<div class="card" onclick="openManager('${m.id}')">
+      <div class="card-row">
+        <div class="av av${i%5}">${m.av||m.name[0]}</div>
+        <div class="card-info">
+          <div class="card-name">${m.name}${m.pin?` <span class="pin-tag">${m.pin}</span>`:''}</div>
+          <div class="card-sub">${m.role_label||'مدير'} · ${emps.length} موظف معين · ${mTasks} مهمة</div>
+        </div>
+        <span class="card-score ${scCls(mScore)}" style="margin-left:4px;">${mScore}</span>
+        <span class="arr">›</span>
+      </div>
+    </div>`;
+  });
+  h+=`<button class="add-btn" onclick="openModal('addManager')">+ إضافة مدير</button>`;
+  body.innerHTML=h;
+}
+
+window.openManager = id => { focusId=id; screen='managerDetail'; draw(); };
+
+function drawManagerDetail(body) {
+  if(!isSuper()) { screen='home'; draw(); return; }
+  const m = users.find(u=>u.id===focusId);
+  if(!m) return;
+  document.getElementById('h-title').textContent = m.name;
+  const perms = m.perms||{};
+  const emps = employees().filter(e=>(m.assignedEmployees||[]).includes(e.id));
+
+  const PERMS = [
+    {k:'extendTasks', l:'تمديد المهام'},
+    {k:'pardonTasks', l:'العفو عن التأخير'},
+    {k:'deleteTasks', l:'حذف المهام'},
+    {k:'addEmployees', l:'إضافة موظفين'},
+  ];
+
+  let h = `<div class="warn-box">🔑 كلمة السر: <b style="font-family:monospace;letter-spacing:2px;">${m.pin||'—'}</b>
+    <button onclick="pinModal('${m.id}','${m.name}')" style="margin-right:8px;padding:2px 9px;background:#5046E5;color:#fff;border:none;border-radius:5px;font-size:11px;cursor:pointer;">تغيير</button>
+  </div>`;
+
+  h+=`<div class="sec-hd">الصلاحيات</div>`;
+  h+=`<div style="background:#fff;border-radius:12px;border:1px solid #E5E5EA;padding:0 13px;margin-bottom:13px;">`;
+  PERMS.forEach(pr=>{
+    h+=`<div class="perm-row">
+      <span class="perm-lbl">${pr.l}</span>
+      <div class="tog ${perms[pr.k]?'on':''}" onclick="togglePerm('${m.id}','${pr.k}',${!perms[pr.k]})"></div>
+    </div>`;
+  });
+  h+=`</div>`;
+
+  h+=`<div class="sec-hd">الموظفون المعينون (${emps.length})</div>`;
+  emps.forEach((e,i)=>{
+    const s=scoreOf(e.id);
+    h+=`<div class="card" onclick="openEmpTasks('${e.id}')">
+      <div class="card-row">
+        <div class="av av${i%5}">${e.av||e.name[0]}</div>
+        <div class="card-info">
+          <div class="card-name">${e.name}</div>
+          <div class="card-sub">${tasks.filter(t=>t.uid===e.id&&!t.done).length} مهمة معلقة</div>
+        </div>
+        <span class="card-score ${scCls(s)}">${s}</span>
+        <span class="arr">›</span>
+      </div>
+    </div>`;
+  });
+  h+=`<button class="add-btn" onclick="openAssign('${m.id}')">تعيين / إزالة موظفين</button>`;
+
+  // Manager's own tasks
+  const mTasks2=tasks.filter(t=>t.uid===m.id);
+  const mPending=mTasks2.filter(t=>!t.done);
+  const mDone=mTasks2.filter(t=>t.done);
+  h+=`<div class="sec-hd">مهام ${m.name} (${mTasks2.length})</div>`;
+  if(!mTasks2.length) h+=`<div style="color:#8E8E93;font-size:12px;margin-bottom:10px;">لا توجد مهام بعد</div>`;
+  mPending.forEach(t=>{ h+=taskCard(t,true); });
+  if(mDone.length){ h+=`<div class="sec-hd">المنجزة</div>`; mDone.forEach(t=>{ h+=taskCard(t,true); }); }
+  h+=`<button class="add-btn" onclick="openModal('addTask','${m.id}')">+ إضافة مهمة للمدير ${m.name}</button>`;
+
+  h+=`<button class="del-btn" onclick="delUser('${m.id}','${m.name}')">حذف المدير ${m.name}</button>`;
+  body.innerHTML=h;
+}
+
+// ── EMPLOYEES ──
+function drawEmployees(body) {
+  const emps = employees();
+  let h = grid2(emps.length,'موظف', tasks.filter(t=>!t.done).length,'مهمة معلقة');
+  if(!emps.length) { h+=empty('لا يوجد موظفون'); }
+  emps.forEach((e,i)=>{
+    const s=scoreOf(e.id);
+    h+=`<div class="card" onclick="openEmpTasks('${e.id}')">
+      <div class="card-row">
+        <div class="av av${i%5}">${e.av||e.name[0]}</div>
+        <div class="card-info">
+          <div class="card-name">${e.name}${e.pin?` <span class="pin-tag">${e.pin}</span>`:''}</div>
+          <div class="card-sub">${tasks.filter(t=>t.uid===e.id&&!t.done).length} مهمة معلقة · ${tasks.filter(t=>t.uid===e.id&&t.done).length} منجزة</div>
+        </div>
+        <span class="card-score ${scCls(s)}">${s}</span>
+        <span class="arr">›</span>
+      </div>
+    </div>`;
+  });
+  h+=`<button class="add-btn" onclick="openModal('addEmployee')">+ إضافة موظف</button>`;
+  body.innerHTML=h;
+}
+
+function drawMyEmps(body) {
+  const emps = myEmps();
+  let h = grid2(emps.length,'موظف معين', tasks.filter(t=>emps.map(e=>e.id).includes(t.uid)&&!t.done).length,'مهمة معلقة');
+  if(!emps.length) { h+=empty('لا يوجد موظفون معينون لك'); }
+  emps.forEach((e,i)=>{
+    const s=scoreOf(e.id);
+    h+=`<div class="card" onclick="openEmpTasks('${e.id}')">
+      <div class="card-row">
+        <div class="av av${i%5}">${e.av||e.name[0]}</div>
+        <div class="card-info">
+          <div class="card-name">${e.name}</div>
+          <div class="card-sub">${tasks.filter(t=>t.uid===e.id&&!t.done).length} مهمة معلقة</div>
+        </div>
+        <span class="card-score ${scCls(s)}">${s}</span>
+        <span class="arr">›</span>
+      </div>
+    </div>`;
+  });
+  if(can('addEmployees')) h+=`<button class="add-btn" onclick="openModal('addEmployee')">+ إضافة موظف</button>`;
+  body.innerHTML=h;
+}
+
+window.openEmpTasks = id => { focusId=id; screen='empTasks'; draw(); };
+
+// ── EMP TASKS (manager view) ──
+function drawEmpTasks(body) {
+  const emp = users.find(u=>u.id===focusId);
+  if(!emp) return;
+  // Security: manager can only view their assigned employees
+  if(isManager() && emp.role==='employee' && !(me.assignedEmployees||[]).includes(emp.id)) {
+    screen='myEmps'; draw(); return;
+  }
+  document.getElementById('h-title').textContent = 'مهام '+emp.name;
+  const s = scoreOf(emp.id);
+  const empTasks = tasks.filter(t=>t.uid===emp.id);
+  const pending = empTasks.filter(t=>!t.done).sort((a,b)=>(dueOf(a)||new Date(9e15))-(dueOf(b)||new Date(9e15)));
+  const done = empTasks.filter(t=>t.done);
+
+  let h = grid2(s,'نقاط الخصم', pending.length,'مهمة معلقة');
+  if(!empTasks.length) h+=empty('لا توجد مهام');
+  pending.forEach(t=>{ h+=taskCard(t,true); });
+  if(done.length) { h+=`<div class="sec-hd">المنجزة (${done.length})</div>`; done.forEach(t=>{ h+=taskCard(t,true); }); }
+  if(isSuper()||isManager()) h+=`<button class="add-btn" onclick="openModal('addTask','${emp.id}')">+ إضافة مهمة</button>`;
+  body.innerHTML=h;
+}
+
+function taskCard(t, managerView) {
+  const late=isLate(t), hl=hleft(t), due=dueOf(t), dueStr=due?fmtDT(due):'';
+  let tl='';
+  if(!t.done&&!t.pardoned&&hl!==null&&hl>0){
+    const h=Math.floor(hl),m=Math.floor((hl-h)*60);
+    tl=`<span class="chip cn">${h>0?h+'س ':''} ${m}د</span>`;
+  }
+  let badge='';
+  if(t.pardoned) badge=`<div class="pbadge">تم العفو</div>`;
+  else if(late) badge=`<div class="lbadge">متأخر</div>`;
+
+  let acts='';
+  if(managerView&&!t.done){
+    if(late&&!t.pardoned&&can('pardonTasks')) acts+=`<button class="abtn ab-g" onclick="pardon('${t.id}')">عفو ↩</button>`;
+    if(can('extendTasks')) acts+=`<button class="abtn ab-b" onclick="extendModal('${t.id}')">تمديد +</button>`;
+  }
+  if(managerView&&can('deleteTasks')) acts+=`<button class="abtn ab-r" onclick="delTask('${t.id}')">حذف</button>`;
+
+  return `<div class="tc ${late&&!t.pardoned?'late':''} ${t.done?'done':''} ${t.pardoned&&!t.done?'pardoned':''}">
+    ${badge}
+    <div class="tc-title">${t.title}</div>
+    <div class="chips">
+      <span class="chip cd">${t.durationDays} يوم</span>
+      ${dueStr?`<span class="chip ct">تسليم: ${dueStr}</span>`:''}
+      ${late&&!t.pardoned?`<span class="chip cl">−${t.pts||5} نقطة</span>`:t.pardoned?`<span class="chip cg">عفو</span>`:t.done?`<span class="chip cg">منجزة ✓</span>`:`<span class="chip cn">${t.pts||5} نقاط</span>`}
+      ${tl}
+    </div>
+    ${t.note?`<div class="tnote">${t.note}</div>`:''}
+    ${t.done&&t.doneNote?`<div class="done-note">${t.doneNote}<div class="done-when">${t.doneAt||''}</div></div>`:''}
+    ${t.done&&!t.doneNote&&t.doneAt?`<div style="font-size:10px;color:#8E8E93;margin-top:3px;">${t.doneAt}</div>`:''}
+    ${acts?`<div class="tactions">${acts}</div>`:''}
+  </div>`;
+}
+
+// ── ALL TASKS ──
+function drawAllTasks(body) {
+  const ids = myEmps().map(e=>e.id);
+  const list = tasks.filter(t=>!t.done&&ids.includes(t.uid)).sort((a,b)=>(dueOf(a)||new Date(9e15))-(dueOf(b)||new Date(9e15)));
+  if(!list.length){body.innerHTML=empty('لا توجد مهام معلقة');return;}
+  let h='';
+  list.forEach(t=>{
+    const e=users.find(u=>u.id===t.uid);
+    if(e) h+=`<div style="font-size:11px;color:#5046E5;font-weight:600;margin-bottom:3px;">${e.name}</div>`;
+    h+=taskCard(t,true);
+  });
+  body.innerHTML=h;
+}
+
+// ── HISTORY ──
+function drawHistory(body) {
+  const ids = myEmps().map(e=>e.id);
+  const now2=new Date(), months=[];
+  for(let i=0;i<6;i++){const d=new Date(now2.getFullYear(),now2.getMonth()-i,1);months.push({v:`${d.getFullYear()}-${p2(d.getMonth()+1)}`,l:d.toLocaleDateString('ar',{year:'numeric',month:'long'})});}
+  let sel=months[0].v;
+  function build(){
+    const done=tasks.filter(t=>t.doneAt&&t.doneAt.startsWith(sel)&&ids.includes(t.uid)).sort((a,b)=>(b.doneAt||'').localeCompare(a.doneAt||''));
+    let h=`<div class="month-bar"><select onchange="window._hs=this.value;window._hrb()">${months.map(m=>`<option value="${m.v}" ${m.v===sel?'selected':''}>${m.l}</option>`).join('')}</select><button class="pdf-btn" onclick="exportPDF('${sel}')">PDF</button></div>`;
+    if(!done.length){h+=empty('لا توجد مهام منجزة');return h;}
+    let by={};done.forEach(t=>{const d=t.doneAt.split(' ')[0];if(!by[d])by[d]=[];by[d].push(t);});
+    Object.keys(by).sort((a,b)=>b.localeCompare(a)).forEach(day=>{
+      h+=`<div class="sec-hd">${day}</div>`;
+      by[day].forEach(t=>{
+        const e=users.find(u=>u.id===t.uid);
+        h+=`<div class="tc"><div class="tc-title">${t.title}</div><div class="card-sub" style="margin-bottom:5px;">${e?e.name:''}</div>${t.doneNote?`<div class="done-note">${t.doneNote}<div class="done-when">${t.doneAt||''}</div></div>`:`<div style="font-size:10px;color:#8E8E93;">${t.doneAt||''}</div>`}</div>`;
+      });
+    });
+    return h;
+  }
+  window._hs=sel; window._hrb=()=>{sel=window._hs;body.innerHTML=build();};
+  body.innerHTML=build();
+}
+
+window.exportPDF = month => {
+  const ids=myEmps().map(e=>e.id);
+  const done=tasks.filter(t=>t.doneAt&&t.doneAt.startsWith(month)&&ids.includes(t.uid));
+  const lbl=new Date(month+'-01').toLocaleDateString('ar',{year:'numeric',month:'long'});
+  const rows=done.map(t=>{const e=users.find(u=>u.id===t.uid);return `<tr><td>${t.title}</td><td>${e?e.name:''}</td><td>${t.durationDays} يوم</td><td>${t.doneAt||''}</td><td>${t.doneNote||''}</td></tr>`;}).join('');
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><style>body{font-family:Tahoma;direction:rtl;padding:24px;font-size:13px;}h2{color:#5046E5;margin-bottom:16px;}table{width:100%;border-collapse:collapse;}th{background:#5046E5;color:#fff;padding:8px;text-align:right;}td{padding:8px;border-bottom:1px solid #eee;}tr:nth-child(even){background:#F9F9FB;}</style></head><body><h2>تقرير المهام - ${lbl}</h2><p style="color:#8E8E93;margin-bottom:12px;">${done.length} مهمة</p><table><thead><tr><th>المهمة</th><th>الموظف</th><th>المدة</th><th>تاريخ الإنجاز</th><th>الملاحظة</th></tr></thead><tbody>${rows}</tbody></table></body></html>`);
+  w.document.close(); setTimeout(()=>w.print(),400);
+};
+
+// ── EMPLOYEE SELF VIEW ──
+function drawEmpView(body) {
+  const s=scoreOf(me.id);
+  const all=tasks.filter(t=>t.uid===me.id);
+  if(empTab===2){ drawMyVisits(body); return; }
+  if(empTab===1){
+    const done=all.filter(t=>t.done).sort((a,b)=>(b.doneAt||'').localeCompare(a.doneAt||''));
+    if(!done.length){body.innerHTML=empty('لا توجد مهام منجزة');return;}
+    body.innerHTML=done.map(t=>{
+      const due=dueOf(t),ds=due?fmtDT(due):'';
+      return `<div class="tc done" style="opacity:1;"><div class="tc-title">${t.title}</div><div class="chips"><span class="chip cd">${t.durationDays} يوم</span>${ds?`<span class="chip ct">${ds}</span>`:''}<span class="chip cg">منجزة ✓</span></div>${t.doneNote?`<div class="done-note">${t.doneNote}<div class="done-when">${t.doneAt||''}</div></div>`:`<div style="font-size:10px;color:#8E8E93;margin-top:3px;">${t.doneAt||''}</div>`}</div>`;
+    }).join('');
+    return;
+  }
+  const pending=all.filter(t=>!t.done).sort((a,b)=>(dueOf(a)||new Date(9e15))-(dueOf(b)||new Date(9e15)));
+  let h=grid2(s==='0'||s===0?'✓ 0':s,'نقاط الخصم', pending.length,'مهمة معلقة');
+  if(!pending.length){h+=empty('🎉 ما في مهام معلقة\nأحسنت!');body.innerHTML=h;return;}
+  pending.forEach(t=>{
+    const late=isLate(t),hl=hleft(t),due=dueOf(t),ds=due?fmtDT(due):'';
+    let tl='';
+    if(!late&&hl!==null&&hl>0){const hh=Math.floor(hl),mm=Math.floor((hl-hh)*60);tl=`<span class="chip cn">${hh>0?hh+'س ':''} ${mm}د</span>`;}
+    h+=`<div class="tc ${late&&!t.pardoned?'late':''} ${t.pardoned?'pardoned':''}">
+      ${late&&!t.pardoned?'<div class="lbadge">متأخر — تم خصم النقاط</div>':''}
+      ${t.pardoned?'<div class="pbadge">تم العفو ✓</div>':''}
+      <div class="tc-title">${t.title}</div>
+      <div class="chips">
+        <span class="chip cd">${t.durationDays} يوم</span>
+        ${ds?`<span class="chip ct">تسليم: ${ds}</span>`:''}
+        ${late&&!t.pardoned?`<span class="chip cl">−${t.pts||5} نقطة</span>`:''}
+        ${t.pardoned?`<span class="chip cg">عفو</span>`:''}${tl}
+      </div>
+      ${t.note?`<div class="tnote">${t.note}</div>`:''}
+      ${late&&!t.pardoned?`<div class="late-warn">⚠️ النقاط خُصمت ولا تُسترد إلا بعفو المدير.</div>`:''}
+      <button class="complete-btn" onclick="doneModal('${t.id}','${t.title.replace(/'/g,"\\'")}')">تم التنفيذ ✓</button>
+    </div>`;
+  });
+  body.innerHTML=h;
+}
+
+// ── ACTIONS ──
+window.pardon = async id => { if(!confirm('تأكيد العفو؟')) return; await updateDoc(doc(db,'tasks',id),{pardoned:true}); };
+window.delTask = async id => { if(!confirm('حذف المهمة؟')) return; await deleteDoc(doc(db,'tasks',id)); };
+window.delUser = async(id,name) => {
+  if(!confirm(`حذف ${name} وجميع مهامه؟`)) return;
+  tasks.filter(t=>t.uid===id).forEach(t=>deleteDoc(doc(db,'tasks',t.id)));
+  await deleteDoc(doc(db,'users',id));
+  goBack();
+};
+window.togglePerm = async(uid,perm,val) => {
+  const u=users.find(x=>x.id===uid);
+  await updateDoc(doc(db,'users',uid),{perms:{...(u.perms||{}),[perm]:val}});
+};
+
+window.extendModal = id => {
+  const t=tasks.find(x=>x.id===id);
+  modal(`<div class="sh-title">تمديد المهمة</div>
+    <label class="flbl">أيام إضافية</label>
+    <input class="finp" type="number" id="ext-d" value="1" min="0.5" step="0.5"/>
+    <div class="fbtn-row"><button class="fbtn-cancel" onclick="closeM()">إلغاء</button>
+    <button class="fbtn-ok" id="fok" onclick="doExtend('${id}','${parseFloat(t.durationDays)||1}')">تمديد</button></div>`);
+};
+window.doExtend = async(id,cur) => {
+  const extra=parseFloat(document.getElementById('ext-d').value)||1;
+  document.getElementById('fok').disabled=true;
+  await updateDoc(doc(db,'tasks',id),{durationDays:parseFloat(cur)+extra,pardoned:false});
+  closeM();
+};
+
+window.pinModal = (uid,name) => {
+  modal(`<div class="sh-title">كلمة سر ${name}</div>
+    <input class="finp" id="pin-new" type="text" maxlength="10" inputmode="numeric" value="${genPin()}" style="font-family:monospace;letter-spacing:3px;font-size:18px;text-align:center;"/>
+    <button class="gen-btn" onclick="document.getElementById('pin-new').value=genPin()">🔀 توليد عشوائي</button>
+    <div class="fbtn-row"><button class="fbtn-cancel" onclick="closeM()">إلغاء</button>
+    <button class="fbtn-ok" id="fok" onclick="savePin('${uid}')">حفظ</button></div>`);
+};
+window.savePin = async uid => {
+  const v=document.getElementById('pin-new').value.trim();
+  if(!/^\d{10}$/.test(v)){alert('يجب أن تكون 10 أرقام');return;}
+  document.getElementById('fok').disabled=true;
+  await updateDoc(doc(db,'users',uid),{pin:v});
+  closeM();
+};
+window.genPin = genPin;
+
+window.openAssign = mid => {
+  const m=users.find(u=>u.id===mid);
+  const all=employees();
+  let sel=new Set(m.assignedEmployees||[]);
+  function buildList(){
+    return `<div class="assign-list">${all.map(e=>`<div class="assign-item ${sel.has(e.id)?'sel':''}" onclick="window._togA('${e.id}')">
+      <div class="achk ${sel.has(e.id)?'on':''}">✓</div><div>${e.name}</div></div>`).join('')}</div>`;
+  }
+  modal(`<div class="sh-title">تعيين موظفين لـ ${m.name}</div>
+    <div id="assign-wrap">${buildList()}</div>
+    <div class="fbtn-row"><button class="fbtn-cancel" onclick="closeM()">إلغاء</button>
+    <button class="fbtn-ok" id="fok" onclick="saveAssign('${mid}')">حفظ</button></div>`);
+  window._togA=id=>{if(sel.has(id))sel.delete(id);else sel.add(id);window._asel=sel;document.getElementById('assign-wrap').innerHTML=buildList();};
+  window._asel=sel;
+};
+window.saveAssign = async mid => {
+  document.getElementById('fok').disabled=true;
+  await updateDoc(doc(db,'users',mid),{assignedEmployees:[...window._asel]});
+  closeM();
+};
+
+let _pendTid=null;
+window.doneModal = (id,title) => {
+  _pendTid=id;
+  modal(`<div class="sh-title">تأكيد الإنجاز</div>
+    <div style="font-size:12px;color:#8E8E93;text-align:center;margin-bottom:14px;">${title}</div>
+    <textarea class="narea" id="dn" rows="3" placeholder="ملاحظة (اختياري)..."></textarea>
+    <div class="fbtn-row"><button class="fbtn-cancel" onclick="closeM()">إلغاء</button>
+    <button class="fbtn-ok" id="fok" onclick="saveDone()">تأكيد ✓</button></div>`);
+  setTimeout(()=>document.getElementById('dn').focus(),100);
+};
+window.saveDone = async() => {
+  const note=(document.getElementById('dn').value||'').trim();
+  document.getElementById('fok').disabled=true;
+  await updateDoc(doc(db,'tasks',_pendTid),{done:true,doneNote:note,doneAt:now()});
+  _pendTid=null; closeM();
+};
+
+// ── OPEN MODAL ──
+window.openModal = (mode,target='') => {
+  if(mode==='_disabled_addManager'){  // removed
+    modal(`<div class="sh-title">إضافة مدير</div>
+      <label class="flbl">الاسم</label><input class="finp" id="mn" placeholder="مثال: أحمد"/>
+      <label class="flbl">الدور</label><input class="finp" id="mr" placeholder="مثال: مدير فرع بريدة"/>
+      <label class="flbl">كلمة السر (10 أرقام)</label>
+      <input class="finp" id="mp" type="text" maxlength="10" inputmode="numeric" value="${genPin()}" style="font-family:monospace;letter-spacing:2px;font-size:17px;text-align:center;"/>
+      <button class="gen-btn" onclick="document.getElementById('mp').value=genPin()">🔀 توليد عشوائي</button>
+      <div class="fbtn-row"><button class="fbtn-cancel" onclick="closeM()">إلغاء</button>
+      <button class="fbtn-ok" id="fok" onclick="saveManager()">إضافة</button></div>`);
+  } else if(mode==='addEmployee'){
+    modal(`<div class="sh-title">إضافة موظف</div>
+      <label class="flbl">الاسم</label><input class="finp" id="mn" placeholder="مثال: خالد"/>
+      <label class="flbl">الدور / الفرع</label><input class="finp" id="mr" placeholder="مثال: مشرف فرع الرس"/>
+      <label class="flbl">كلمة السر (10 أرقام)</label>
+      <input class="finp" id="mp" type="text" maxlength="10" inputmode="numeric" value="${genPin()}" style="font-family:monospace;letter-spacing:2px;font-size:17px;text-align:center;"/>
+      <button class="gen-btn" onclick="document.getElementById('mp').value=genPin()">🔀 توليد عشوائي</button>
+      <div class="fbtn-row"><button class="fbtn-cancel" onclick="closeM()">إلغاء</button>
+      <button class="fbtn-ok" id="fok" onclick="saveEmployee('${target}')">إضافة</button></div>`);
+  } else if(mode==='addTask'){
+    modal(`<div class="sh-title">إضافة مهمة</div>
+      <label class="flbl">عنوان المهمة</label><input class="finp" id="tt" placeholder="مثال: تسوية الصندوق"/>
+      <div class="f2">
+        <div><label class="flbl">المدة (أيام)</label><input class="finp" type="number" id="td" value="1" min="0.5" step="0.5" style="margin-bottom:0"/></div>
+        <div><label class="flbl">نقاط الخصم</label><input class="finp" type="number" id="tp" value="5" min="1" max="50" style="margin-bottom:0"/></div>
+      </div>
+      <div class="info-box" style="margin-top:10px;">⏱ 1 يوم = 24 ساعة من الآن</div>
+      <label class="flbl">ملاحظة (اختياري)</label>
+      <textarea class="narea" id="tn" rows="2" placeholder="أي تفاصيل..."></textarea>
+      <div class="fbtn-row"><button class="fbtn-cancel" onclick="closeM()">إلغاء</button>
+      <button class="fbtn-ok" id="fok" onclick="saveTask('${target}')">إضافة</button></div>`);
+  }
+};
+
+window.saveManager = async() => {
+  const name=(document.getElementById('mn').value||'').trim(); if(!name) return;
+  const role=(document.getElementById('mr').value||'').trim();
+  const pin=document.getElementById('mp').value.trim();
+  if(!/^\d{10}$/.test(pin)){alert('يجب 10 أرقام');return;}
+  document.getElementById('fok').disabled=true;
+  await addDoc(collection(db,'users'),{name,role_label:role,pin,av:name[0]+'ـ',role:'manager',perms:{},assignedEmployees:[],createdAt:now()});
+  closeM();
+};
+
+window.saveEmployee = async(autoAssignManagerId='') => {
+  const name=(document.getElementById('mn').value||'').trim(); if(!name) return;
+  const role=(document.getElementById('mr').value||'').trim();
+  const pin=document.getElementById('mp').value.trim();
+  if(!/^\d{10}$/.test(pin)){alert('يجب 10 أرقام');return;}
+  document.getElementById('fok').disabled=true;
+  const ref=await addDoc(collection(db,'users'),{name,role_label:role,pin,av:name[0]+'ـ',role:'employee',createdAt:now()});
+
+  closeM();
+};
+
+window.saveTask = async(uid) => {
+  const title=(document.getElementById('tt').value||'').trim(); if(!title) return;
+  const dur=parseFloat(document.getElementById('td').value)||1;
+  const pts=parseInt(document.getElementById('tp').value)||5;
+  const note=(document.getElementById('tn').value||'').trim();
+  document.getElementById('fok').disabled=true;
+  await addDoc(collection(db,'tasks'),{uid,title,durationDays:dur,pts,note,done:false,pardoned:false,doneNote:'',doneAt:'',createdAt:now()});
+  closeM();
+};
+
+// ── MODAL HELPERS ──
+function modal(inner){
+  closeM();
+  const ov=document.createElement('div'); ov.id='ov'; ov.className='overlay';
+  ov.innerHTML=`<div class="sheet">${inner}</div>`;
+  ov.addEventListener('click',e=>{if(e.target===ov)closeM();});
+  document.body.appendChild(ov);
+  setTimeout(()=>{const f=ov.querySelector('input,textarea');if(f)f.focus();},80);
+}
+window.closeM=()=>{const e=document.getElementById('ov');if(e)e.remove();};
+
+// ── LAYOUT HELPERS ──
+function grid2(n1,l1,n2,l2){
+  const cls1=typeof n1==='number'?scCls(n1):'';
+  return `<div class="grid2"><div class="sc"><div class="sc-num ${cls1}">${n1}</div><div class="sc-lbl">${l1}</div></div><div class="sc"><div class="sc-num">${n2}</div><div class="sc-lbl">${l2}</div></div></div>`;
+}
+function empty(txt){return `<div class="empty">${txt.replace(/\n/g,'<br>')}</div>`;}
+
+
+
+// ══════════════════════════════════════════
+// VISITS MODULE
+// ══════════════════════════════════════════
+
+function getWeekKey() {
+  const n = new Date();
+  const d = new Date(n);
+  d.setDate(d.getDate() - d.getDay());
+  return d.toISOString().slice(0,10);
+}
+
+function getWeekLabel() {
+  const n = new Date();
+  const start = new Date(n);
+  start.setDate(start.getDate() - start.getDay());
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  const f = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  return f(start) + ' ← ' + f(end);
+}
+
+// ── SUPER: visits management list ──
+function drawVisitsMgmt(body) {
+  const emps = employees();
+  let h = '<div class="sec-hd">إعداد زيارات الفروع</div>';
+  if (!emps.length) { h += empty('لا يوجد موظفون'); body.innerHTML = h; return; }
+  emps.forEach((e, i) => {
+    const branches = e.branches || [];
+    const wt = e.weeklyVisits || 0;
+    h += '<div class="card" onclick="openEmpVisits(\'' + e.id + '\')">' +
+      '<div class="card-row">' +
+      '<div class="av av' + (i%5) + '">' + (e.av||e.name[0]) + '</div>' +
+      '<div class="card-info">' +
+      '<div class="card-name">' + e.name + '</div>' +
+      '<div class="card-sub">' + branches.length + ' فرع · ' + wt + ' زيارة/أسبوع</div>' +
+      '</div><span class="arr">›</span></div></div>';
+  });
+  body.innerHTML = h;
+}
+
+window.openEmpVisits = id => { focusId = id; screen = 'empVisitsMgmt'; draw(); };
+
+// ── SUPER: single emp visits setup ──
+function drawEmpVisitsMgmt(body) {
+  const emp = users.find(u => u.id === focusId);
+  if (!emp) return;
+  document.getElementById('h-title').textContent = 'فروع ' + emp.name;
+  const branches = emp.branches || [];
+  const wt = emp.weeklyVisits || 0;
+
+  let h = '<div class="warn-box" style="display:flex;align-items:center;justify-content:space-between;">' +
+    '<span>الزيارات المطلوبة أسبوعياً</span>' +
+    '<button onclick="changeWeeklyTarget(\'' + emp.id + '\',' + wt + ')" style="padding:4px 12px;background:#5046E5;color:#fff;border:none;border-radius:7px;font-size:12px;cursor:pointer;">' + wt + ' زيارة ✏️</button>' +
+    '</div>';
+
+  h += '<div class="sec-hd">الفروع (' + branches.length + ')</div>';
+  if (!branches.length) h += '<div style="color:#8E8E93;font-size:12px;margin-bottom:10px;">لا توجد فروع</div>';
+
+  branches.forEach((b, i) => {
+    h += '<div style="background:#fff;border-radius:10px;border:1px solid #E5E5EA;padding:11px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px;">' +
+      '<div style="flex:1;">' +
+      '<div style="font-size:14px;font-weight:600;color:#1C1C1E;">' + b.name + '</div>' +
+      (b.region ? '<div style="font-size:11px;color:#8E8E93;">' + b.region + '</div>' : '') +
+      '</div>' +
+      '<button onclick="deleteBranch(\'' + emp.id + '\',' + i + ')" style="padding:3px 10px;background:#FEE2E2;color:#DC2626;border:none;border-radius:6px;font-size:11px;cursor:pointer;">حذف</button>' +
+      '</div>';
+  });
+
+  h += '<button class="add-btn" onclick="addBranchModal(\'' + emp.id + '\')">+ إضافة فرع</button>';
+  body.innerHTML = h;
+}
+
+window.changeWeeklyTarget = (uid, cur) => {
+  modal('<div class="sh-title">الزيارات الأسبوعية</div>' +
+    '<label class="flbl">العدد المطلوب</label>' +
+    '<input class="finp" type="number" id="wt" value="' + cur + '" min="1" max="50"/>' +
+    '<div class="fbtn-row"><button class="fbtn-cancel" onclick="closeM()">إلغاء</button>' +
+    '<button class="fbtn-ok" id="fok" onclick="saveWeeklyTarget(\'' + uid + '\')">حفظ</button></div>');
+};
+
+window.saveWeeklyTarget = async uid => {
+  const v = parseInt(document.getElementById('wt').value) || 1;
+  document.getElementById('fok').disabled = true;
+  await updateDoc(doc(db, 'users', uid), { weeklyVisits: v });
+  closeM();
+};
+
+window.addBranchModal = uid => {
+  modal('<div class="sh-title">إضافة فرع</div>' +
+    '<label class="flbl">اسم الفرع</label>' +
+    '<input class="finp" id="bn" placeholder="مثال: فرع العليا"/>' +
+    '<label class="flbl">المنطقة (اختياري)</label>' +
+    '<input class="finp" id="br" placeholder="مثال: الرياض"/>' +
+    '<div class="fbtn-row"><button class="fbtn-cancel" onclick="closeM()">إلغاء</button>' +
+    '<button class="fbtn-ok" id="fok" onclick="saveBranch(\'' + uid + '\')">إضافة</button></div>');
+};
+
+window.saveBranch = async uid => {
+  const name = (document.getElementById('bn').value || '').trim();
+  if (!name) return;
+  const region = (document.getElementById('br').value || '').trim();
+  document.getElementById('fok').disabled = true;
+  const emp = users.find(u => u.id === uid);
+  const branches = [...(emp.branches || []), { name, region }];
+  await updateDoc(doc(db, 'users', uid), { branches });
+  closeM();
+};
+
+window.deleteBranch = async (uid, idx) => {
+  if (!confirm('حذف هذا الفرع؟')) return;
+  const emp = users.find(u => u.id === uid);
+  const branches = [...(emp.branches || [])];
+  branches.splice(idx, 1);
+  await updateDoc(doc(db, 'users', uid), { branches });
+};
+
+// ── SUPER: visits overview ──
+function drawVisitsOverview(body) {
+  const week = getWeekKey();
+  const emps = employees();
+  let h = '<div class="warn-box">📅 ' + getWeekLabel() + '</div>';
+  h += '<div class="sec-hd">نسبة الإنجاز الأسبوعي</div>';
+
+  emps.forEach((e, i) => {
+    const target = e.weeklyVisits || 0;
+    const done = (visits || []).filter(v => v.uid === e.id && v.weekKey === week).length;
+    const pct = target > 0 ? Math.min(100, Math.round(done / target * 100)) : 0;
+    const color = pct >= 100 ? '#34C759' : pct >= 50 ? '#FF9500' : '#FF3B30';
+    h += '<div style="background:#fff;border-radius:12px;border:1px solid #E5E5EA;padding:13px;margin-bottom:10px;">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">' +
+      '<div style="display:flex;align-items:center;gap:9px;">' +
+      '<div class="av av' + (i%5) + '">' + (e.av||e.name[0]) + '</div>' +
+      '<div><div style="font-size:13px;font-weight:600;color:#1C1C1E;">' + e.name + '</div>' +
+      '<div style="font-size:11px;color:#8E8E93;">' + done + ' من ' + target + ' زيارة</div></div>' +
+      '</div>' +
+      '<div style="font-size:18px;font-weight:700;color:' + color + ';">' + pct + '%</div>' +
+      '</div>' +
+      '<div style="height:6px;background:#F2F2F7;border-radius:3px;overflow:hidden;">' +
+      '<div style="height:100%;width:' + pct + '%;background:' + color + ';border-radius:3px;"></div></div>' +
+      '<button onclick="openEmpVisitDetail(\'' + e.id + '\')" style="margin-top:8px;width:100%;padding:6px;background:#F2F2F7;border:none;border-radius:7px;font-size:11px;color:#5046E5;cursor:pointer;font-weight:500;">عرض التفاصيل</button>' +
+      '</div>';
+  });
+  body.innerHTML = h;
+}
+
+window.openEmpVisitDetail = id => { focusId = id; screen = 'empVisitDetail'; draw(); };
+
+// ── SUPER: emp visit detail ──
+function drawEmpVisitDetail(body) {
+  const emp = users.find(u => u.id === focusId);
+  if (!emp) return;
+  document.getElementById('h-title').textContent = 'زيارات ' + emp.name;
+  const week = getWeekKey();
+  const branches = emp.branches || [];
+  const weekVisits = (visits || []).filter(v => v.uid === emp.id && v.weekKey === week);
+
+  let h = '<div class="warn-box">📅 ' + getWeekLabel() + '</div>';
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">';
+
+  branches.forEach((b, i) => {
+    const brV = weekVisits.filter(v => v.branchIdx === i);
+    const hasMorn = brV.some(v => v.time === 'morning');
+    const hasEve = brV.some(v => v.time === 'evening');
+    const isVis = brV.length > 0;
+    h += '<div style="background:' + (isVis?'#F5FFF7':'#fff') + ';border-radius:12px;border:1.5px solid ' + (isVis?'#34C759':'#E5E5EA') + ';padding:12px;">' +
+      '<div style="font-size:12px;font-weight:600;color:#1C1C1E;margin-bottom:5px;">' + b.name + '</div>' +
+      '<div style="display:flex;gap:5px;margin-bottom:4px;">' +
+      '<span style="font-size:14px;">' + (hasMorn?'☀️':'🌑') + '</span>' +
+      '<span style="font-size:14px;">' + (hasEve?'🌙':'🌑') + '</span>' +
+      '</div>' +
+      '<div style="font-size:10px;color:' + (isVis?'#34C759':'#C7C7CC') + ';font-weight:600;">' + (isVis?'✓ '+brV.length+' زيارة':'لم يُزار') + '</div>' +
+      '</div>';
+  });
+  h += '</div>';
+
+  if (weekVisits.length > 0) {
+    h += '<div class="sec-hd">تفاصيل الزيارات</div>';
+    [...weekVisits].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).forEach(v => {
+      const b = branches[v.branchIdx];
+      h += '<div style="background:#fff;border-radius:10px;border:1px solid #E5E5EA;padding:10px 12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:9px;">' +
+        '<div style="font-size:18px;">' + (v.time==='morning'?'☀️':'🌙') + '</div>' +
+        '<div><div style="font-size:13px;font-weight:600;color:#1C1C1E;">' + (b?b.name:'—') + '</div>' +
+        '<div style="font-size:11px;color:#8E8E93;">' + (v.time==='morning'?'صباحي':'مسائي') + ' · ' + v.date + '</div>' +
+        (v.note?'<div style="font-size:11px;color:#5046E5;margin-top:2px;">'+v.note+'</div>':'') +
+        '</div></div>';
+    });
+  } else {
+    h += empty('لا توجد زيارات مسجلة هذا الأسبوع');
+  }
+  body.innerHTML = h;
+}
+
+// ── EMPLOYEE: my visits ──
+function drawMyVisits(body) {
+  const branches = me.branches || [];
+  const weeklyTarget = me.weeklyVisits || 0;
+  const week = getWeekKey();
+  const weekVisits = (visits || []).filter(v => v.uid === me.id && v.weekKey === week);
+  const done = weekVisits.length;
+  const pct = weeklyTarget > 0 ? Math.min(100, Math.round(done / weeklyTarget * 100)) : 0;
+  const pctColor = pct >= 100 ? '#34C759' : pct >= 50 ? '#FF9500' : '#5046E5';
+
+  let h = '<div style="background:#fff;border-radius:14px;border:1px solid #E5E5EA;padding:16px;margin-bottom:14px;">' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">' +
+    '<div><div style="font-size:13px;font-weight:600;color:#1C1C1E;">هذا الأسبوع</div>' +
+    '<div style="font-size:11px;color:#8E8E93;">' + getWeekLabel() + '</div></div>' +
+    '<div style="text-align:center;">' +
+    '<div style="font-size:24px;font-weight:700;color:' + pctColor + ';">' + done + '/' + weeklyTarget + '</div>' +
+    '<div style="font-size:11px;color:#8E8E93;">زيارة</div></div></div>' +
+    '<div style="height:8px;background:#F2F2F7;border-radius:4px;overflow:hidden;">' +
+    '<div style="height:100%;width:' + pct + '%;background:' + pctColor + ';border-radius:4px;"></div></div>' +
+    '<div style="font-size:11px;color:#8E8E93;margin-top:5px;text-align:left;">' + pct + '%</div>' +
+    '</div>';
+
+  if (!branches.length) {
+    h += empty('لا توجد فروع معينة لك\nتواصل مع المدير');
+    body.innerHTML = h;
+    return;
+  }
+
+  h += '<div class="sec-hd">الفروع</div>';
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">';
+
+  branches.forEach((b, i) => {
+    const brV = weekVisits.filter(v => v.branchIdx === i);
+    const hasMorn = brV.some(v => v.time === 'morning');
+    const hasEve = brV.some(v => v.time === 'evening');
+    const isVis = brV.length > 0;
+    h += '<div style="background:' + (isVis?'#F5FFF7':'#fff') + ';border-radius:12px;border:1.5px solid ' + (isVis?'#34C759':'#E5E5EA') + ';padding:12px;cursor:pointer;" onclick="openBranchVisit(' + i + ')">' +
+      '<div style="font-size:13px;font-weight:600;color:#1C1C1E;margin-bottom:4px;">' + b.name + '</div>' +
+      (b.region?'<div style="font-size:10px;color:#8E8E93;margin-bottom:5px;">'+b.region+'</div>':'') +
+      '<div style="display:flex;gap:5px;">' +
+      '<span style="font-size:16px;" title="صباحي">' + (hasMorn?'☀️':'🌑') + '</span>' +
+      '<span style="font-size:16px;" title="مسائي">' + (hasEve?'🌙':'🌑') + '</span>' +
+      '</div>' +
+      '<div style="font-size:10px;margin-top:4px;font-weight:600;color:' + (isVis?'#34C759':'#C7C7CC') + ';">' + (isVis?'✓ '+brV.length+' زيارة':'اضغط لتسجيل') + '</div>' +
+      '</div>';
+  });
+  h += '</div>';
+
+  if (weekVisits.length > 0) {
+    h += '<div class="sec-hd">سجل زياراتي هذا الأسبوع</div>';
+    [...weekVisits].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).forEach(v => {
+      const b = branches[v.branchIdx];
+      h += '<div style="background:#fff;border-radius:10px;border:1px solid #E5E5EA;padding:10px 12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;">' +
+        '<div style="font-size:20px;">' + (v.time==='morning'?'☀️':'🌙') + '</div>' +
+        '<div style="flex:1;">' +
+        '<div style="font-size:13px;font-weight:600;color:#1C1C1E;">' + (b?b.name:'—') + '</div>' +
+        '<div style="font-size:11px;color:#8E8E93;">' + (v.time==='morning'?'صباحي':'مسائي') + ' · ' + v.date + '</div>' +
+        (v.note?'<div style="font-size:11px;color:#5046E5;margin-top:2px;">'+v.note+'</div>':'') +
+        '</div>' +
+        '<div style="display:flex;gap:5px;">' +
+        '<button onclick="editVisit(\'' + v.id + '\')" style="padding:3px 8px;background:#EEF0FF;color:#3730A3;border:none;border-radius:5px;font-size:10px;cursor:pointer;">تعديل</button>' +
+        '<button onclick="deleteVisit(\'' + v.id + '\')" style="padding:3px 8px;background:#FEE2E2;color:#DC2626;border:none;border-radius:5px;font-size:10px;cursor:pointer;">حذف</button>' +
+        '</div></div>';
+    });
+  }
+  body.innerHTML = h;
+}
+
+// ── Branch visit modal ──
+window.openBranchVisit = function(idx) {
+  const branches = me.branches || [];
+  const b = branches[idx];
+  if (!b) return;
+  window._selTime = 'morning';
+  window._visitBranchIdx = idx;
+  const html = '<div class="sh-title">تسجيل زيارة</div>' +
+    '<div style="font-size:15px;font-weight:700;text-align:center;margin-bottom:16px;color:#5046E5;">' + b.name + '</div>' +
+    '<label class="flbl">وقت الزيارة</label>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;" id="time-btns">' +
+    '<div id="t-morning" onclick="selectVisitTime(\'morning\')" style="padding:13px;background:#FEF3C7;border:2px solid #F59E0B;border-radius:10px;text-align:center;cursor:pointer;font-size:15px;font-weight:600;color:#92400E;">☀️ صباحي</div>' +
+    '<div id="t-evening" onclick="selectVisitTime(\'evening\')" style="padding:13px;background:#F9F9FB;border:2px solid #E5E5EA;border-radius:10px;text-align:center;cursor:pointer;font-size:15px;font-weight:600;color:#3730A3;">🌙 مسائي</div>' +
+    '</div>' +
+    '<label class="flbl">ملاحظة (اختياري)</label>' +
+    '<textarea class="narea" id="vn" rows="3" placeholder="أي ملاحظات عن الزيارة..."></textarea>' +
+    '<div class="fbtn-row"><button class="fbtn-cancel" onclick="closeM()">إلغاء</button>' +
+    '<button class="fbtn-ok" id="fok" onclick="saveVisit()">تسجيل الزيارة</button></div>';
+  modal(html);
+};
+
+window.selectVisitTime = function(t) {
+  window._selTime = t;
+  const m = document.getElementById('t-morning');
+  const e = document.getElementById('t-evening');
+  if (m) { m.style.borderColor = t==='morning'?'#F59E0B':'#E5E5EA'; m.style.background = t==='morning'?'#FEF3C7':'#F9F9FB'; }
+  if (e) { e.style.borderColor = t==='evening'?'#6366F1':'#E5E5EA'; e.style.background = t==='evening'?'#EEF0FF':'#F9F9FB'; }
+};
+
+window.saveVisit = async function() {
+  const noteEl = document.getElementById('vn');
+  const note = noteEl ? noteEl.value.trim() : '';
+  const time = window._selTime || 'morning';
+  const idx = window._visitBranchIdx || 0;
+  const d = new Date();
+  const date = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  const fok = document.getElementById('fok');
+  if (fok) fok.disabled = true;
+  await addDoc(collection(db, 'visits'), {
+    uid: me.id, branchIdx: idx, time, note, date,
+    weekKey: getWeekKey(), createdAt: now()
+  });
+  closeM();
+};
+
+window.editVisit = function(id) {
+  const v = visits.find(x => x.id === id);
+  if (!v) return;
+  const branches = me.branches || [];
+  const b = branches[v.branchIdx];
+  window._selTime = v.time;
+  window._editVisitId = id;
+  const html = '<div class="sh-title">تعديل الزيارة</div>' +
+    '<div style="font-size:14px;font-weight:600;text-align:center;margin-bottom:14px;color:#5046E5;">' + (b?b.name:'') + '</div>' +
+    '<label class="flbl">وقت الزيارة</label>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">' +
+    '<div id="t-morning" onclick="selectVisitTime(\'morning\')" style="padding:13px;background:' + (v.time==='morning'?'#FEF3C7':'#F9F9FB') + ';border:2px solid ' + (v.time==='morning'?'#F59E0B':'#E5E5EA') + ';border-radius:10px;text-align:center;cursor:pointer;font-size:15px;font-weight:600;color:#92400E;">☀️ صباحي</div>' +
+    '<div id="t-evening" onclick="selectVisitTime(\'evening\')" style="padding:13px;background:' + (v.time==='evening'?'#EEF0FF':'#F9F9FB') + ';border:2px solid ' + (v.time==='evening'?'#6366F1':'#E5E5EA') + ';border-radius:10px;text-align:center;cursor:pointer;font-size:15px;font-weight:600;color:#3730A3;">🌙 مسائي</div>' +
+    '</div>' +
+    '<label class="flbl">ملاحظة</label>' +
+    '<textarea class="narea" id="vn" rows="3">' + (v.note||'') + '</textarea>' +
+    '<div class="fbtn-row"><button class="fbtn-cancel" onclick="closeM()">إلغاء</button>' +
+    '<button class="fbtn-ok" id="fok" onclick="updateVisit()">حفظ</button></div>';
+  modal(html);
+};
+
+window.updateVisit = async function() {
+  const note = (document.getElementById('vn').value || '').trim();
+  const time = window._selTime || 'morning';
+  const id = window._editVisitId;
+  const fok = document.getElementById('fok');
+  if (fok) fok.disabled = true;
+  await updateDoc(doc(db, 'visits', id), { time, note });
+  closeM();
+};
+
+window.deleteVisit = async function(id) {
+  if (!confirm('حذف هذه الزيارة؟')) return;
+  await deleteDoc(doc(db, 'visits', id));
+};
+
+
+setInterval(()=>{if(me)draw();},30000);
+</script>
+</body>
+</html>
